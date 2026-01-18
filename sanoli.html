@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sachaai Ka Saamna 🤡</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+
+        #ui-layer {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 25px;
+            border: 2px solid #ff0055;
+            text-align: center;
+            box-shadow: 0 0 40px #ff0055;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        h1 { color: #fff; font-size: 1.3rem; margin-bottom: 30px; min-height: 80px; line-height: 1.4; }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+            min-height: 120px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, font-size 0.2s;
+        }
+
+        #yesBtn {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 20px #00ff00;
+            z-index: 11;
+        }
+
+        #noBtn {
+            background: #ff0055;
+            color: white;
+            position: relative;
+            z-index: 1000;
+        }
+
+        img { width: 120px; margin-bottom: 15px; border-radius: 15px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div id="ui-layer">
+        <div id="content">
+            <img id="pageGif" src="https://media.tenor.com/D_i-W9L7LpYAAAAM/cat-funny.gif">
+            <h1 id="questionText">Sawaal 1: Tum, moti ho ki nahi? 🤨</h1>
+            
+            <div class="buttons-container">
+                <button id="yesBtn">Haan!</button>
+                <button id="noBtn">Nahi!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SPIDER TRAIL ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let points = [];
+        let mouse = { x: canvas.width/2, y: canvas.height/2 };
+        window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('touchmove', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
+
+        class Point {
+            constructor(i) { this.x = mouse.x; this.y = mouse.y; this.i = i; }
+            update() {
+                let targetX = (this.i === 0) ? mouse.x : points[this.i - 1].x;
+                let targetY = (this.i === 0) ? mouse.y : points[this.i - 1].y;
+                this.x += (targetX - this.x) * 0.3; this.y += (targetY - this.y) * 0.3;
+            }
+        }
+        for (let i = 0; i < 15; i++) points.push(new Point(i));
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) { points[i].update(); ctx.lineTo(points[i].x, points[i].y); }
+            ctx.stroke(); requestAnimationFrame(animate);
+        }
+        animate();
+
+        // --- BUTTON & PAGE LOGIC ---
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const questionText = document.getElementById('questionText');
+        const pageGif = document.getElementById('pageGif');
+
+        let yesScale = 1;
+        let noTexts = ["soch le", "sach me", "pakka", "ek baar aur socho", "meri kasam", "jhut bol rahi ho"];
+        let textIndex = 0;
+        let currentPage = 1;
+
+        const questions = [
+            "", // Dummy
+            "Sawaal 1: Tum, moti ho ki nahi? 🤨",
+            "Sawaal 2: Batao, tum ne hamesha mujhse se jhuth hi kaha hai naa? 🤥",
+            "Sawaal 3: Main tumhara best friend nahi hoon naa? 💔",
+            "Sawaal 4: Tum meri bahan ho ya nahi? 👫",
+            "Sawaal 5: Tum mujhe bahut jaldi hi chhodne wali ho naa? 🥺"
+        ];
+
+        const moveNoButton = (e) => {
+            if (e) e.preventDefault();
+            
+            // 1. No button ka text badlo
+            noBtn.innerText = noTexts[textIndex];
+            textIndex = (textIndex + 1) % noTexts.length;
+
+            // 2. Yes button ko bada karo
+            yesScale += 0.25;
+            yesBtn.style.transform = `scale(${yesScale})`;
+
+            // 3. No button ko bhagao
+            const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+            const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+            const randomX = Math.max(10, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(10, Math.floor(Math.random() * maxY));
+
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        };
+
+        noBtn.addEventListener('mouseover', moveNoButton);
+        noBtn.addEventListener('touchstart', moveNoButton);
+
+        yesBtn.addEventListener('click', () => {
+            currentPage++;
+            
+            // Reset for next page
+            yesScale = 1;
+            yesBtn.style.transform = `scale(1)`;
+            noBtn.style.position = 'relative';
+            noBtn.style.left = 'auto';
+            noBtn.style.top = 'auto';
+            noBtn.innerText = "Nahi!";
+
+            if (currentPage <= 5) {
+                questionText.innerText = questions[currentPage];
+                // Gifs change based on emotional level
+                if (currentPage === 3) pageGif.src = "https://media.tenor.com/O-pM1Bq3W7IAAAAM/sleeping-cat.gif";
+                if (currentPage === 5) pageGif.src = "https://media.tenor.com/v8Fk666iYvEAAAAj/friends-hug.gif";
+            } else {
+                document.getElementById('ui-layer').innerHTML = `
+                    <img src="https://media.tenor.com/gU_669SjA98AAAAj/milk-and-mocha.gif">
+                    <h1 style="color:#00ff00;">Hahaha! Saare 'HAAN' record ho gaye hain! Ab tu gayi! 😂📸</h1>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
